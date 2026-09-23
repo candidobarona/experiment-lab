@@ -1,0 +1,117 @@
+/*
+  Design plan — Experiment Lab
+  Subject: a working tool for product analysts, used mid-meeting to design,
+  read, and present an A/B test. It should feel like a precision instrument
+  panel — lab notebook meets analytics console — not a marketing site or a
+  generic SaaS dashboard.
+
+  Color:
+    --ink:      #14181C  (near-black, warm) — primary text
+    --paper:    #F7F6F2  (warm off-white) — page background
+    --panel:    #FFFFFF  — card surfaces
+    --line:     #DAD6CC  — hairline borders
+    --accent:   #2B6E5E  (deep lab-coat teal-green) — primary accent, links, focus
+    --accent-2: #C4622D  (burnt amber) — uplift/positive emphasis, secondary accent
+    --negative: #B23A3A  (muted brick red) — negative/decrease results
+    --muted:    #6B6B63  — secondary text
+
+  Type:
+    Display / numbers: "Spectral" (serif, slightly technical, good at large
+      sizes for big result numbers) — gives the "lab report" feel instead
+      of the usual grotesque-sans SaaS look.
+    UI / body: "IBM Plex Sans" — engineered, slightly technical sans that
+      reads as instrumentation rather than marketing.
+    Data / code: "IBM Plex Mono" for stat values, formulas, CSV previews.
+
+  Layout: left-aligned content, a fixed-width lab-notebook column (max
+  880px) for reading, but full-width panels for data/results so numbers
+  get room to breathe. Tabs are a top rail styled like sample-tray tabs,
+  not pill buttons. Big result numbers get their own quiet panel.
+
+  Principles:
+  - The result is the hero, every screen: whatever number matters most
+    (sample size, uplift, p-value, impact) is set in Spectral at large
+    scale, quiet color, generous space around it.
+  - No card-soup: cards are used only where they group distinct data
+    (group A vs group B), not as a default wrapper for every block.
+  - Motion limited to one thing: a quiet fade when a result first appears.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  --ink: #14181c;
+  --paper: #f7f6f2;
+  --panel: #ffffff;
+  --line: #dad6cc;
+  --accent: #2b6e5e;
+  --accent-soft: #e4efec;
+  --accent-2: #c4622d;
+  --accent-2-soft: #f5e6dc;
+  --negative: #b23a3a;
+  --negative-soft: #f6e4e1;
+  --muted: #6b6b63;
+
+  --font-display: "Spectral", Georgia, serif;
+  --font-ui: "IBM Plex Sans", -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+button {
+  font-family: var(--font-ui);
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
