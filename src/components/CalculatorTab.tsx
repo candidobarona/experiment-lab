@@ -7,6 +7,7 @@ import {
 import { calculateSampleSize, estimateDurationDays } from "../statistics/sampleSize";
 import { Field, Panel, BigNumber, Button } from "./primitives";
 import {
+  formatCurrency,
   formatNumber,
   formatPercent,
   formatSignedPercent,
@@ -14,48 +15,70 @@ import {
 import "./Calculator.css";
 
 type MetricCard = "conversion" | "revenue_user" | "aov" | "continuous";
+type MetricUnit = "percent" | "currency" | "number";
 
 const METRIC_CARDS: {
   id: MetricCard;
   title: string;
   example: string;
-  enabled: boolean;
 }[] = [
   {
     id: "conversion",
     title: "Conversion Rate",
     example: "e.g. 5.0%",
-    enabled: true,
   },
   {
     id: "revenue_user",
     title: "Average Revenue / User",
     example: "e.g. €12.50",
-    enabled: true,
   },
-  { id: "aov", title: "Average Order Value", example: "e.g. €85", enabled: true },
+  { id: "aov", title: "Average Order Value", example: "e.g. €85" },
   {
     id: "continuous",
     title: "Continuous Metric",
     example: "e.g. average session duration",
-    enabled: true,
   },
 ];
+
+// Only "conversion" is a proportion (bounded 0-100%) and uses the
+// two-proportion z-test. Revenue/user, AOV, and generic continuous
+// metrics are all unbounded numeric metrics and use the two-sample
+// t-test instead — they must never be formatted or calculated as a
+// percentage.
+const METRIC_UNIT: Record<MetricCard, MetricUnit> = {
+  conversion: "percent",
+  revenue_user: "currency",
+  aov: "currency",
+  continuous: "number",
+};
+
+const METRIC_LABEL: Record<MetricCard, string> = {
+  conversion: "conversion rate",
+  revenue_user: "revenue per user",
+  aov: "average order value",
+  continuous: "metric",
+};
+
+function formatByUnit(value: number, unit: MetricUnit): string {
+  if (unit === "percent") return formatPercent(value);
+  if (unit === "currency") return formatCurrency(value);
+  return value.toFixed(2);
+}
 
 export function CalculatorTab() {
   const { state, update } = useExperiment();
   const { design } = state;
-  const [metricCard, setMetricCard] = useState<MetricCard>(
-    design.metricType === "conversion" ? "conversion" : "continuous",
-  );
+  const [metricCard, setMetricCard] = useState<MetricCard>("conversion");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showFormula, setShowFormula] = useState(false);
 
-  const isConversionLike = metricCard !== "continuous";
+  const isConversion = metricCard === "conversion";
+  const unit = METRIC_UNIT[metricCard];
+  const metricUnitLabel = METRIC_LABEL[metricCard];
 
   const result = useMemo(() => {
     try {
-      if (isConversionLike) {
+      if (isConversion) {
         if (!design.baselineRate || design.baselineRate <= 0) return null;
         return calculateSampleSize({
           metricType: "conversion",
@@ -84,7 +107,7 @@ export function CalculatorTab() {
     } catch {
       return null;
     }
-  }, [design, isConversionLike]);
+  }, [design, isConversion]);
 
   // Keep the shared experiment state in sync so other tabs can use it.
   useEffect(() => {
@@ -95,15 +118,6 @@ export function CalculatorTab() {
   const durationDays = design.dailyEligibleUsers
     ? estimateDurationDays(result?.total ?? 0, design.dailyEligibleUsers)
     : null;
-
-  const metricUnitLabel =
-    metricCard === "conversion"
-      ? "conversion rate"
-      : metricCard === "revenue_user"
-        ? "revenue per user"
-        : metricCard === "aov"
-          ? "average order value"
-          : "metric";
 
   return (
     <div>
@@ -123,7 +137,7 @@ export function CalculatorTab() {
               update({
                 design: {
                   ...design,
-                  metricType: card.id === "continuous" ? "continuous" : "conversion",
+                  metricType: card.id === "conversion" ? "conversion" : "continuous",
                 },
               });
             }}
@@ -138,13 +152,15 @@ export function CalculatorTab() {
         <Panel className="calc-steps">
           <StepBaseline
             metricCard={metricCard}
+            unit={unit}
             design={design}
             onChange={(patch) => update({ design: { ...design, ...patch } })}
           />
 
           <StepUplift
             metricUnitLabel={metricUnitLabel}
-            isConversion={isConversionLike}
+            unit={unit}
+            isConversion={isConversion}
             design={design}
             onChange={(patch) => update({ design: { ...design, ...patch } })}
           />
@@ -315,10 +331,9 @@ export function CalculatorTab() {
               <p className="result-explainer">
                 You need approximately{" "}
                 <strong>{formatNumber(result.perGroup)} users</strong> in
-                each group to detect{" "}
-                {isConversionLike
-                  ? `an uplift from ${formatPercent(result.expectedControlValue)} to ${formatPercent(result.expectedTreatmentValue)}`
-                  : `a change from ${result.expectedControlValue.toFixed(2)} to ${result.expectedTreatmentValue.toFixed(2)}`}{" "}
+                each group to detect a change in {metricUnitLabel} from{" "}
+                {formatByUnit(result.expectedControlValue, unit)} to{" "}
+                {formatByUnit(result.expectedTreatmentValue, unit)}{" "}
                 ({formatSignedPercent(design.relativeUplift)}) with{" "}
                 {Math.round(design.power * 100)}% power.
               </p>
@@ -333,9 +348,7 @@ export function CalculatorTab() {
                     />
                   </div>
                   <span className="scenario-row__value mono">
-                    {isConversionLike
-                      ? formatPercent(result.expectedControlValue)
-                      : result.expectedControlValue.toFixed(2)}
+                    {formatByUnit(result.expectedControlValue, unit)}
                   </span>
                 </div>
                 <div className="scenario-row">
@@ -349,9 +362,7 @@ export function CalculatorTab() {
                     />
                   </div>
                   <span className="scenario-row__value mono">
-                    {isConversionLike
-                      ? formatPercent(result.expectedTreatmentValue)
-                      : result.expectedTreatmentValue.toFixed(2)}
+                    {formatByUnit(result.expectedTreatmentValue, unit)}
                   </span>
                 </div>
               </div>
@@ -376,9 +387,7 @@ export function CalculatorTab() {
                   <div>Method: {result.method}</div>
                   <div>
                     Minimum detectable effect (absolute):{" "}
-                    {isConversionLike
-                      ? formatPercent(result.minimumDetectableEffectAbsolute)
-                      : result.minimumDetectableEffectAbsolute.toFixed(3)}
+                    {formatByUnit(result.minimumDetectableEffectAbsolute, unit)}
                   </div>
                   <div>Significance level: {formatPercent(design.alpha, 0)}</div>
                   <div>Power: {formatPercent(design.power, 0)}</div>
@@ -403,21 +412,62 @@ export function CalculatorTab() {
 
 function StepBaseline({
   metricCard,
+  unit,
   design,
   onChange,
 }: {
   metricCard: MetricCard;
+  unit: MetricUnit;
   design: typeof import("../experiments/types").DEFAULT_STATE.design;
   onChange: (patch: Partial<typeof design>) => void;
 }) {
-  if (metricCard === "continuous") {
+  if (metricCard === "conversion") {
     return (
-      <div className="step step--pair">
-        <Field label="Current average (baseline)">
+      <div className="step">
+        <Field label="What is your current conversion rate?">
+          <div className="input-with-suffix">
+            <input
+              type="number"
+              step="any"
+              placeholder="5.0"
+              value={
+                design.baselineRate !== undefined
+                  ? Number((design.baselineRate * 100).toFixed(4))
+                  : ""
+              }
+              onChange={(e) =>
+                onChange({
+                  baselineRate: e.target.value
+                    ? Number(e.target.value) / 100
+                    : undefined,
+                })
+              }
+            />
+            <span className="input-suffix">%</span>
+          </div>
+        </Field>
+      </div>
+    );
+  }
+
+  const baselineLabel =
+    metricCard === "revenue_user"
+      ? "What is your current average revenue per user?"
+      : metricCard === "aov"
+        ? "What is your current average order value?"
+        : "Current average (baseline)";
+
+  const placeholder = unit === "currency" ? "12.50" : "180";
+
+  return (
+    <div className="step step--pair">
+      <Field label={baselineLabel}>
+        <div className="input-with-suffix">
+          {unit === "currency" && <span className="input-prefix">€</span>}
           <input
             type="number"
             step="any"
-            placeholder="e.g. 180"
+            placeholder={placeholder}
             value={design.baselineMean ?? ""}
             onChange={(e) =>
               onChange({
@@ -425,12 +475,15 @@ function StepBaseline({
               })
             }
           />
-        </Field>
-        <Field label="Standard deviation" hint="How spread out the values usually are">
+        </div>
+      </Field>
+      <Field label="Standard deviation" hint="How spread out the values usually are">
+        <div className="input-with-suffix">
+          {unit === "currency" && <span className="input-prefix">€</span>}
           <input
             type="number"
             step="any"
-            placeholder="e.g. 45"
+            placeholder={unit === "currency" ? "8.00" : "45"}
             value={design.baselineStdDev ?? ""}
             onChange={(e) =>
               onChange({
@@ -438,40 +491,6 @@ function StepBaseline({
               })
             }
           />
-        </Field>
-      </div>
-    );
-  }
-
-  const label =
-    metricCard === "conversion"
-      ? "What is your current conversion rate?"
-      : metricCard === "revenue_user"
-        ? "What is your current average revenue per user?"
-        : "What is your current average order value?";
-
-  return (
-    <div className="step">
-      <Field label={label}>
-        <div className="input-with-suffix">
-          <input
-            type="number"
-            step="any"
-            placeholder="5.0"
-            value={
-              design.baselineRate !== undefined
-                ? Number((design.baselineRate * 100).toFixed(4))
-                : ""
-            }
-            onChange={(e) =>
-              onChange({
-                baselineRate: e.target.value
-                  ? Number(e.target.value) / 100
-                  : undefined,
-              })
-            }
-          />
-          <span className="input-suffix">%</span>
         </div>
       </Field>
     </div>
@@ -480,11 +499,13 @@ function StepBaseline({
 
 function StepUplift({
   metricUnitLabel,
+  unit,
   isConversion,
   design,
   onChange,
 }: {
   metricUnitLabel: string;
+  unit: MetricUnit;
   isConversion: boolean;
   design: typeof import("../experiments/types").DEFAULT_STATE.design;
   onChange: (patch: Partial<typeof design>) => void;
@@ -514,14 +535,9 @@ function StepUplift({
       {baseline !== undefined && newValue !== undefined && (
         <p className="uplift-explainer">
           This means increasing {metricUnitLabel} from{" "}
-          <strong>
-            {isConversion ? formatPercent(baseline) : baseline.toFixed(2)}
-          </strong>{" "}
-          to{" "}
-          <strong>
-            {isConversion ? formatPercent(newValue) : newValue.toFixed(2)}
-          </strong>{" "}
-          — not {design.relativeUplift * 100} percentage points.
+          <strong>{formatByUnit(baseline, unit)}</strong> to{" "}
+          <strong>{formatByUnit(newValue, unit)}</strong> — not{" "}
+          {design.relativeUplift * 100} percentage points.
         </p>
       )}
     </div>

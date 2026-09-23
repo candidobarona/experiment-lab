@@ -88,6 +88,14 @@
   align-items: center;
 }
 
+.input-prefix {
+  padding: 0 4px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
 .uplift-explainer {
   font-size: 13px;
   color: var(--muted);

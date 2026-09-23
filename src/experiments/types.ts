@@ -81,6 +81,9 @@ export interface ExperimentSummary {
   endDate?: string;
   targetAudience?: string;
   expectedOutcome?: string;
+  /** Optional image (base64 data URL) used on the title slide of the PPT — e.g. a company logo or a relevant screenshot. */
+  imageDataUrl?: string;
+  imageFileName?: string;
 }
 
 /** Everything the app knows about the current experiment, shared across tabs. */

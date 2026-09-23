@@ -21,6 +21,98 @@ import { parseTimeSeriesCsv } from "../utils/csv";
 import { formatNumber, formatSignedPercent } from "../utils/format";
 import "./CausalImpactTab.css";
 
+// A worked example used both for the on-screen table/diagram and for the
+// downloadable sample file, so what people see matches what they get.
+const EXAMPLE_INTERVENTION_DATE = "2026-06-01";
+const EXAMPLE_ROWS: { date: string; value: number }[] = [
+  { date: "2026-05-27", value: 980 },
+  { date: "2026-05-28", value: 1005 },
+  { date: "2026-05-29", value: 995 },
+  { date: "2026-05-30", value: 1010 },
+  { date: "2026-05-31", value: 1000 },
+  { date: "2026-06-01", value: 1180 },
+  { date: "2026-06-02", value: 1205 },
+  { date: "2026-06-03", value: 1190 },
+  { date: "2026-06-04", value: 1215 },
+];
+
+function downloadExampleCsv() {
+  const lines = ["date,value", ...EXAMPLE_ROWS.map((r) => `${r.date},${r.value}`)];
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "causal-impact-example.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function CsvFormatGuide() {
+  return (
+    <div className="ci-format-guide">
+      <div className="ci-format-guide__title">How your file needs to look</div>
+      <p className="ci-format-guide__text">
+        Two columns, <code>date</code> and <code>value</code>, one row per
+        day. The file must contain rows <strong>before</strong> the
+        intervention date (so the model can learn the normal trend) and rows{" "}
+        <strong>on or after</strong> it (so it can compare what actually
+        happened) — both are required.
+      </p>
+
+      <div className="ci-timeline">
+        <div className="ci-timeline__segment ci-timeline__segment--pre">
+          <span>Pre-period</span>
+          <span className="ci-timeline__req">rows required</span>
+        </div>
+        <div className="ci-timeline__marker">
+          <div className="ci-timeline__marker-line" />
+          <span className="ci-timeline__marker-label">Intervention date</span>
+        </div>
+        <div className="ci-timeline__segment ci-timeline__segment--post">
+          <span>Post-period</span>
+          <span className="ci-timeline__req">rows required</span>
+        </div>
+      </div>
+
+      <table className="ci-example-table">
+        <thead>
+          <tr>
+            <th>date</th>
+            <th>value</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {EXAMPLE_ROWS.map((row) => {
+            const isIntervention = row.date === EXAMPLE_INTERVENTION_DATE;
+            const isPost = row.date >= EXAMPLE_INTERVENTION_DATE;
+            return (
+              <tr
+                key={row.date}
+                className={isIntervention ? "ci-example-table__intervention-row" : ""}
+              >
+                <td className="mono">{row.date}</td>
+                <td className="mono">{row.value}</td>
+                <td className="ci-example-table__tag">
+                  {isIntervention
+                    ? "← intervention date"
+                    : isPost
+                      ? "post-period"
+                      : "pre-period"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <button type="button" className="ci-download-link" onClick={downloadExampleCsv}>
+        Download this example as a CSV file
+      </button>
+    </div>
+  );
+}
+
 export function CausalImpactTab() {
   const [whatChanged, setWhatChanged] = useState("");
   const [interventionDate, setInterventionDate] = useState("");
@@ -95,6 +187,8 @@ export function CausalImpactTab() {
               placeholder="e.g. Revenue"
             />
           </Field>
+
+          <CsvFormatGuide />
 
           <Field
             label="Upload data (CSV)"

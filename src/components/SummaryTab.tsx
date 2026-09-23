@@ -114,6 +114,43 @@ export function SummaryTab() {
               onChange={(e) => patch({ expectedOutcome: e.target.value })}
             />
           </Field>
+
+          <Field
+            label="Add an image"
+            hint="Optional — a logo or relevant screenshot, shown on the title slide of the PPT"
+          >
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  patch({
+                    imageDataUrl: reader.result as string,
+                    imageFileName: file.name,
+                  });
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+          </Field>
+          {summary.imageDataUrl && (
+            <div className="summary-image-preview">
+              <img src={summary.imageDataUrl} alt="Uploaded for the presentation" />
+              <div>
+                <div className="summary-image-preview__name">{summary.imageFileName}</div>
+                <button
+                  type="button"
+                  className="summary-image-preview__remove"
+                  onClick={() => patch({ imageDataUrl: undefined, imageFileName: undefined })}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
         </Panel>
 
         <Panel className="summary-preview">

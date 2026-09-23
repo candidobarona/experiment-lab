@@ -32,7 +32,7 @@ export async function generateExperimentPptx(
   const experimentName =
     summary.experimentName || results.experimentName || "Untitled experiment";
 
-  slideTitle(pptx, experimentName, summary);
+  await slideTitle(pptx, experimentName, summary);
   slideWhy(pptx, summary);
   slideDesign(pptx, design, sampleSizeResult, summary);
   slideResults(pptx, results, analyzed);
@@ -75,7 +75,7 @@ function footer(slide: PptxGenJS.Slide, pageLabel: string) {
   });
 }
 
-function slideTitle(
+async function slideTitle(
   pptx: PptxGenJS,
   experimentName: string,
   summary: ExperimentState["summary"],
@@ -119,6 +119,33 @@ function slideTitle(
       fontSize: 16,
       color: COLORS.line,
       italic: true,
+    });
+  }
+  if (summary.imageDataUrl) {
+    // Fit the image into a fixed-height box in the top-right corner
+    // without distorting it, sizing by its natural aspect ratio.
+    const boxW = 2.6;
+    const boxH = 1.6;
+    let w = boxW;
+    let h = boxH;
+    try {
+      const ratio = await getImageAspectRatio(summary.imageDataUrl);
+      if (ratio > boxW / boxH) {
+        w = boxW;
+        h = boxW / ratio;
+      } else {
+        h = boxH;
+        w = boxH * ratio;
+      }
+    } catch {
+      // Fall back to the default box size if the image fails to decode.
+    }
+    slide.addImage({
+      data: summary.imageDataUrl,
+      x: 13.33 - 0.7 - w,
+      y: 0.55,
+      w,
+      h,
     });
   }
   const dateStr =
@@ -600,4 +627,14 @@ function slideNextSteps(pptx: PptxGenJS) {
   }
 
   footer(slide, "Experiment Lab");
+}
+
+/** Loads a data-URL image just far enough to read its natural width/height. */
+function getImageAspectRatio(dataUrl: string): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth / img.naturalHeight || 1);
+    img.onerror = () => reject(new Error("Could not decode image"));
+    img.src = dataUrl;
+  });
 }

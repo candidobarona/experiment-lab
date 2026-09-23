@@ -3,9 +3,7 @@ import "./App.css";
 import { ExperimentProvider } from "./experiments/ExperimentContext";
 import { TabNav, type TabId } from "./components/TabNav";
 import { CalculatorTab } from "./components/CalculatorTab";
-import { ResultsTab } from "./components/ResultsTab";
-import { SummaryTab } from "./components/SummaryTab";
-import { PptTab } from "./components/PptTab";
+import { ExperimentTab } from "./components/ExperimentTab";
 import { CausalImpactTab } from "./components/CausalImpactTab";
 
 function App() {
@@ -28,9 +26,7 @@ function App() {
 
         <main className="app-main">
           {tab === "calculator" && <CalculatorTab />}
-          {tab === "results" && <ResultsTab />}
-          {tab === "summary" && <SummaryTab />}
-          {tab === "ppt" && <PptTab />}
+          {tab === "experiment" && <ExperimentTab />}
           {tab === "causal-impact" && <CausalImpactTab />}
         </main>
 

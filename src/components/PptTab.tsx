@@ -15,8 +15,8 @@ export function PptTab() {
 
   const readiness = [
     { label: "Experiment design", ready: hasDesign, tab: "A/B Test Calculator" },
-    { label: "Results analysis", ready: hasResults, tab: "A/B Test Results" },
-    { label: "Hypothesis & context", ready: hasSummary, tab: "Experiment Summary" },
+    { label: "Results analysis", ready: hasResults, tab: "Experiment → Results" },
+    { label: "Hypothesis & context", ready: hasSummary, tab: "Experiment → Summary" },
   ];
 
   const handleGenerate = async () => {

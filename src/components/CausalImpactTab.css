@@ -30,6 +30,146 @@
   margin: 4px 0 0;
 }
 
+.ci-format-guide {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  background: var(--paper);
+}
+
+.ci-format-guide__title {
+  font-weight: 600;
+  font-size: 13.5px;
+  margin-bottom: 8px;
+}
+
+.ci-format-guide__text {
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+.ci-format-guide__text code {
+  font-family: var(--font-mono);
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11.5px;
+}
+
+.ci-timeline {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.ci-timeline__segment {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.ci-timeline__segment--pre {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ci-timeline__segment--post {
+  background: var(--accent-2-soft);
+  color: var(--accent-2);
+}
+
+.ci-timeline__req {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.ci-timeline__marker {
+  width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.ci-timeline__marker-line {
+  width: 2px;
+  flex: 1;
+  background: var(--negative);
+}
+
+.ci-timeline__marker-label {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9.5px;
+  color: var(--negative);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.ci-example-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.ci-example-table th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ci-example-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ci-example-table__tag {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ci-example-table__intervention-row {
+  background: var(--negative-soft);
+}
+
+.ci-example-table__intervention-row .ci-example-table__tag {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+.ci-download-link {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.ci-download-link:hover {
+  border-color: var(--accent);
+}
+
 .ci-secondary-stats {
   display: flex;
   gap: 32px;

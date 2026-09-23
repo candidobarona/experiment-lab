@@ -1,0 +1,5 @@
+.experiment-tab__hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: -14px 0 24px;
+}

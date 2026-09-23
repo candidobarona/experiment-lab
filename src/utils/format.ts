@@ -20,12 +20,16 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(Math.round(value));
 }
 
-export function formatCurrency(value: number, currency = "EUR"): string {
+export function formatCurrency(
+  value: number,
+  currency = "EUR",
+  maximumFractionDigits = 2,
+): string {
   if (Number.isNaN(value)) return "—";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    maximumFractionDigits: 0,
+    maximumFractionDigits,
   }).format(value);
 }
 
